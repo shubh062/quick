@@ -8,6 +8,8 @@ int verbose;
 int checkLinks;
 int deleteFlag;
 
+int copiedEntities;
+
 #define MAX_PATH_SIZE 256
 char origDirName[MAX_PATH_SIZE];
 char destDirName[MAX_PATH_SIZE];
@@ -15,10 +17,64 @@ char destDirName[MAX_PATH_SIZE];
 
 
 void fixPath(char *, char []);
-void traverseDir(char origDirName[],char destDirName[]){
-    printf("hello");
-    printf("source and dest dir :start\n %s \n %s \n end:",origDirName,destDirName);
+
+void traverseDir(char orig[],char destName[]){
+    //to do 
+    char *source; //pointer to origin
+    struct stat sr; //dont use poinnter cuz we want it to be locally available for this function and then vanish
+
+    char * destin;//pointer to desination
+    struct stat dt;
+    DIR *dp; //directory pointer for traversal of directory
+
     
+    //1. check if source directory exist if not exit;
+    if(stat(orig,&sr)<0) return;
+
+    //2. opening the directory if(exists)
+    if((dp=opendir(orig))==NULL){
+        perror("opendir");
+        return ;
+    }
+    
+    //3. check if dest directory exist;
+    if(stat(destName,&dt)<0){ //if directory dont exists;
+        if(mkdir(destName)==-1){//made the directory
+            perror("mkdir");
+            return;
+        }
+        else {
+            chmod(destName,sr.st_mode); //change modes (permissions) as respect to the source directory
+        }
+        copiedEntities++;
+
+        if(verbose) printf("created a directory: %s \n", destName);
+
+    }
+    else{ // if the directory already exists;
+        if(deleteFlag) {
+            //checkfordeletedfiles(orig,destNaME);
+            printf("here a function will be initiated for checking the deleted file that dest has , and source files hasnt");
+
+        }
+        else{ //if d flag was not given;
+
+        }
+
+    }
+
+
+
+    /*
+
+
+    3. check if correstpoinding destdir exist using stat
+        3a if not then make a directory // print action according to verbose flag
+        3b if the destdir exists 
+            3ba check for deleted files , dest has , but source doesnt, if d flag is avaialbe
+    4
+
+    */
 }
 
 
@@ -63,7 +119,6 @@ int main(int argc, char* argv[]){
         fixPath(argv[argc-2],"source");
         fixPath(argv[argc-1],"dest");
         traverseDir( origDirName,destDirName);
-
     }
     else { //if the source path is any other file
         printf("the current file is regular so copy function is to be initiated \n");
