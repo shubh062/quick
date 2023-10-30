@@ -8,6 +8,7 @@ int verbose;
 int checkLinks;
 int deleteFlag;
 
+//Copying Information
 int copiedEntities;
 
 #define MAX_PATH_SIZE 256
@@ -32,13 +33,13 @@ void traverseDir(char orig[],char destName[]){
     if(stat(orig,&sr)<0) return;
 
     //2. opening the directory if(exists)
-    if((dp=opendir(orig))==NULL){
+    if((dp=opendir(orig))==NULL){ //this makes sure that the oriign is a directory that why we can open it, so now we proceed to make corresponding directory to destination
         perror("opendir");
         return ;
     }
     
-    //3. check if dest directory exist;
-    if(stat(destName,&dt)<0){ //if directory dont exists;
+    //3. check if dest directory(specifically PATH) exist;
+    if(stat(destName,&dt)<0){ //if Path(can be a diretory/or a file) dont exists;
         if(mkdir(destName)==-1){//made the directory
             perror("mkdir");
             return;
@@ -49,16 +50,22 @@ void traverseDir(char orig[],char destName[]){
         copiedEntities++;
 
         if(verbose) printf("created a directory: %s \n", destName);
-
     }
     else{ // if the directory already exists;
         if(deleteFlag) {
             //checkfordeletedfiles(orig,destNaME);
-            printf("here a function will be initiated for checking the deleted file that dest has , and source files hasnt");
-
+            printf("Function Intitiated: checks and deletes -> the file that dest has and source files hasnt");
         }
         else{ //if d flag was not given;
-
+            if((S_IFMT & dt.st_mode)!=S_IFDIR){//IF the path not corresponds to a directory
+                remove(destDirName);
+                mkdir(destDirName);
+                chmod(orig,dt.st_mode);
+                copiedEntities++;
+                if(verbose){
+                    printf("replaced : %s with a new directory ", destDirName);
+                }
+            }
         }
 
     }
