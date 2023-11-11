@@ -71,7 +71,20 @@ void traverseDir(char orig[],char destName[]){
 
     }
 
-  //Before copying we need to avoid any case of looping a cycle while copying 
+    //Before copying we need to avoid any case of looping a cycle while copying 
+    char *name1=realpath(orig,NULL);
+    char *name2=realpath(destName,NULL);
+    if(strcmp(name1,name2)==0){
+        if(verbose) printf("By copying %s, a loop is created so it is skipped copying",orig);
+        free(name1);
+        free(name2);
+        closedir(dp);
+        return;
+    }
+    //if not looping then continue;
+    free(name1);
+    free(name2);
+
   
 }
 
