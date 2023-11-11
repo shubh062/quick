@@ -2,6 +2,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <stdlib.h>
 
 //flags
 int verbose;
@@ -70,7 +71,8 @@ void traverseDir(char orig[],char destName[]){
 
     }
 
-    //Before copying we need to avoid any case of looping a cycle while copying 
+  //Before copying we need to avoid any case of looping a cycle while copying 
+  
 }
 
 
@@ -102,7 +104,6 @@ int main(int argc, char* argv[]){
         }
     }
 
-    
 
     struct stat mybuf; //structure for containing file status of the source directory, below we check source file existence
     if(stat(argv[argc-2],&mybuf)<0){//gives 0 on success: means succesfully retrives the file attribute in  mybuf named stat structure
@@ -112,8 +113,8 @@ int main(int argc, char* argv[]){
 
     if((mybuf.st_mode & S_IFMT) == S_IFDIR){ //if the source file is a directory
         //before copying we need to canonicate path(convert to full path) //canonized path to be store in var origDirName, destDirName
-        fixPath(argv[argc-2],"source");
-        fixPath(argv[argc-1],"dest");
+        fixPath(argv[argc-2],"s");
+        fixPath(argv[argc-1],"d");
         traverseDir( origDirName,destDirName);
     }
     else { //if the source path is any other file
@@ -124,23 +125,17 @@ int main(int argc, char* argv[]){
 }
 
 
-//here realpath function can be used 
+//here manual conversion to absolute path can be done as well 
 void fixPath(char * oldPath, char which[]){
-    if(oldPath[0]=='.' && oldPath[1]=='/'){    //if the given path is relative path 
-        if(strcmp(which,"source")==0){
-            strcpy(origDirName,&oldPath[2]); //we removed the first 2 characters ./ and and copied to dir name
-        }
-        else if(strcmp(which,"dest")==0){
-            strcpy(destDirName,&oldPath[2]);
-        }
+	 if (which=='s' && (realpath(oldPath, origDirName) != NULL)) {
+		printf("origin canonized ");
+    } 
+	else if (which=='d' && (realpath(oldPath, destDirName) != NULL)) {
+		printf("dest canonized ");
+	} 
+	else {
+        perror("realpath");
+        // Handle the error as needed
     }
-    else{ //if the file is starts with / it is full path
-        if(strcmp(which,"source")==0){
-            strcpy(origDirName,oldPath); //we directly copied the path
-            printf("origin directory name changed to %s \n",origDirName);
-        }
-        else if(strcmp(which,"dest")==0){
-            strcpy(destDirName,oldPath);
-        }    
-    }
+	printf("\n");
 }
