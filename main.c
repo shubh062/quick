@@ -54,7 +54,7 @@ void traverseDir(char orig[],char destName[]){
     else{ // if the directory already exists;
         if(deleteFlag) {
             //checkfordeletedfiles(orig,destNaME);
-            printf("Function Intitiated: checks and deletes -> the file that dest has and source files hasnt");
+            printf("Above Function Intitiated: checks and deletes -> the file that dest has and source files hasnt");
         }
         else{ //if d flag was not given;
             if((S_IFMT & dt.st_mode)!=S_IFDIR){//IF the path not corresponds to a directory
@@ -70,18 +70,7 @@ void traverseDir(char orig[],char destName[]){
 
     }
 
-
-
-    /*
-
-
-    3. check if correstpoinding destdir exist using stat
-        3a if not then make a directory // print action according to verbose flag
-        3b if the destdir exists 
-            3ba check for deleted files , dest has , but source doesnt, if d flag is avaialbe
-    4
-
-    */
+    //Before copying we need to avoid any case of looping a cycle while copying 
 }
 
 
@@ -135,22 +124,22 @@ int main(int argc, char* argv[]){
 }
 
 
-
+//here realpath function can be used 
 void fixPath(char * oldPath, char which[]){
     if(oldPath[0]=='.' && oldPath[1]=='/'){    //if the given path is relative path 
-        if(which=="source"){
+        if(strcmp(which,"source")==0){
             strcpy(origDirName,&oldPath[2]); //we removed the first 2 characters ./ and and copied to dir name
         }
-        else if(which=="dest"){
+        else if(strcmp(which,"dest")==0){
             strcpy(destDirName,&oldPath[2]);
         }
     }
     else{ //if the file is starts with / it is full path
-        if(which=="source"){
+        if(strcmp(which,"source")==0){
             strcpy(origDirName,oldPath); //we directly copied the path
             printf("origin directory name changed to %s \n",origDirName);
         }
-        else if(which=="dest"){
+        else if(strcmp(which,"dest")==0){
             strcpy(destDirName,oldPath);
         }    
     }
