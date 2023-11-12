@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <stdlib.h>
+#include "include.h"
 
 //flags
 int verbose;
@@ -11,6 +12,8 @@ int deleteFlag;
 
 //Copying Information
 int copiedEntities;
+int bytesCopied;
+int totalEntities;
 
 #define MAX_PATH_SIZE 256
 char origDirName[MAX_PATH_SIZE];
@@ -27,6 +30,7 @@ void traverseDir(char orig[],char destName[]){
 
     char * destin;//pointer to desination
     struct stat dt;
+    struct dirent *direntp;
     DIR *dp; //directory pointer for traversal of directory
 
     
@@ -71,7 +75,7 @@ void traverseDir(char orig[],char destName[]){
 
     }
 
-    //Before copying we need to avoid any case of looping a cycle while copying 
+    //4. Before copying we need to avoid any case of looping a cycle while copying 
     char *name1=realpath(orig,NULL);
     char *name2=realpath(destName,NULL);
     if(strcmp(name1,name2)==0){
@@ -85,7 +89,38 @@ void traverseDir(char orig[],char destName[]){
     free(name1);
     free(name2);
 
-  
+    //5.now we will recursively traverse directry and copy files of each directory entry if it is regular file or if it is a directory then call traversedir again
+    while ((direntp=readdir(dp))!=NULL)
+    {   
+        //getting the source directory entry
+        char *temp1=malloc(strlen(orig)+strlen(direntp->d_name)+2);
+        strcat(temp1,orig);
+            if(temp1[strlen(orig)-1]!="/") strcat(temp1,"/");
+        strcat(temp1,direntp->d_name);
+
+        //framing the exact path for corresponding directory entry
+        char *temp2=malloc(strlen(destName)+strlen(direntp->d_name)+2);
+        strcat(temp2,destName);
+            if(temp2[strlen(destName)-1]!="/") strcat(temp2,"/");
+        strcat(temp2,direntp->d_name);  
+
+        //check if the entry corresponds to the current parent entry or not
+        int flag= strcmp(direntp->d_name,".") && strcmp(direntp->d_name,"..");
+
+        if(flag!=0){
+            totalEntities++;
+            copyfile(temp1,temp2);
+        }    
+
+        free(temp1);
+        temp1=NULL;
+        free(temp2);
+        temp2=NULL;
+
+    }
+
+    closedir(dp);
+    
 }
 
 
@@ -97,17 +132,17 @@ int main(int argc, char* argv[]){
         return -1;
     }
 
-//reading flags and storing in 'global variable' because they need to be paased to other function
-    for(int i=1;i<(argc-2);i++){//leaving last 2 inputs that are source and dest
-        if(strcmp(argv[i],"-v")==0){ //(v->verbose, which provides addtional info about copying )
+    //reading flags and storing in 'global variable' because they need to be paased to other function
+    for(int i=1;i<(argc-2);i++){            //leaving last 2 inputs that are source and dest
+        if(strcmp(argv[i],"-v")==0){        //(v->verbose, which provides addtional info about copying )
             verbose=1;
             printf("the verbose flag is set %d \n",verbose);
         }
-        else if(strcmp(argv[i],"-l")==0){ //(-l which checks for sybolic links and )
+        else if(strcmp(argv[i],"-l")==0){   //(-l which checks for symbolic links and )
             checkLinks=1;
             printf("the checklink is set %d \n",checkLinks);
         }
-        else if(strcmp(argv[i],"-d")==0){    //(-d flag, which means we are required to delete extrafiles that are present excess in dest folder, but not in source)
+        else if(strcmp(argv[i],"-d")==0){   //(-d flag, which means we are required to delete extrafiles that are present excess in dest folder, but not in source)
             deleteFlag=1;
             printf("the delete flag is set %d \n",deleteFlag);
         }
@@ -120,7 +155,7 @@ int main(int argc, char* argv[]){
 
     struct stat mybuf; //structure for containing file status of the source directory, below we check source file existence
     if(stat(argv[argc-2],&mybuf)<0){//gives 0 on success: means succesfully retrives the file attribute in  mybuf named stat structure
-        perror(argv[argc-2]); //if failed, means source file not exist since returned -1 and throws error
+        perror(argv[argc-2]);       //if failed, means source file not exist since returned -1 and throws error
         return -1;
     }//now we have file attributes of source(argv[argc-2]) stored in mybuf stat structure
 
@@ -132,6 +167,7 @@ int main(int argc, char* argv[]){
     }
     else { //if the source path is any other file
         printf("the current file is regular so copy function is to be initiated \n");
+        copyfile(origDirName,destDirName);
     }
 
     return 0;
@@ -152,3 +188,5 @@ void fixPath(char * oldPath, char which[]){
     }
 	printf("\n");
 }
+//manual conversion to absolute path must be preferred here since 2 different directory names can have same content
+//and same file structure inside them and then using realpath function can make conflicts to canonicize the paths
