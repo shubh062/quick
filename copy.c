@@ -21,6 +21,9 @@ extern char origDirName[MAX_PATH_SIZE];
 extern char destDirName[MAX_PATH_SIZE];
 
 
+void deepcopy(char *fil1, char* file2);
+
+
 void copyfile(char *name1, char *name2){
     struct stat mybuf;
     struct stat mybuf2;
@@ -52,9 +55,34 @@ void copyfile(char *name1, char *name2){
     else if(strcmp(type,"l")==0){
         if(checkLinks) printf("call for copy of symbolic function");
         return;
+    }//Case: Hardlink to explicitly handled
+
+    //if the file is regular 
+    if(stat(name2,&mybuf2)<0){
+        if(perror!=ENOENT) {
+            perror("stat");
+            return;
+        }
+       deepcopy(name1,name2);
+       chmod(name2,mybuf.st_mode);
+
+        if(stat(name2,&mybuf2)<0){
+            perror("stat");
+            return;
+        }
+
+        bytesCopied+=(int)mybuf2.st_size;
+        copiedEntities++;
+
+        if(verbose) {
+            printf("copied %s :\n",name2);
+        }
+    }
+    else{
+        
     }
     
-    
+
 
 
 
