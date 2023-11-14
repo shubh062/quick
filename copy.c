@@ -152,12 +152,3 @@ void copyfile(char *name1, char *name2){
 
         }
     }
-    
-
-
-
-
-
-
-
-}
