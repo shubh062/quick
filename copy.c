@@ -58,6 +58,8 @@ void copyfile(char *name1, char *name2){
     }//Case: Hardlink to explicitly handled
 
     //if the file is regular 
+
+    //case1 if the corresponding dest file dont't exist 
     if(stat(name2,&mybuf2)<0){
         if(perror!=ENOENT) {
             perror("stat");
@@ -78,6 +80,7 @@ void copyfile(char *name1, char *name2){
             printf("copied %s :\n",name2);
         }
     }
+    //case2 : if the corresponding destination file exists
     else{
         
     }
