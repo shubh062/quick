@@ -112,7 +112,9 @@ void copyfile(char *name1, char *name2){
             chmod(name2,mybuf.st_mode);
             copiedEntities++;
             bytesCopied+=(int)mybuf2.st_size;
-
+            if(verbose) {
+                printf("copied %s :\n",name2);
+            }
 
         }  
         //case2: if the file size is different 
@@ -126,6 +128,9 @@ void copyfile(char *name1, char *name2){
             chmod(name2,mybuf.st_mode);
             copiedEntities++;
             bytesCopied+=(int)mybuf2.st_size;
+            if(verbose) {
+                printf("copied %s :\n",name2);
+            }
 
         }
 
@@ -139,12 +144,13 @@ void copyfile(char *name1, char *name2){
             chmod(name2,mybuf.st_mode);
             copiedEntities++;
             bytesCopied+=(int)mybuf2.st_size;
+            if(verbose) {
+                printf("copied %s :\n",name2);
+            }
 
         }
 
         }
-
-
     }
     
 
