@@ -21,7 +21,9 @@ extern char origDirName[MAX_PATH_SIZE];
 extern char destDirName[MAX_PATH_SIZE];
 
 
-void deepcopy(char *fil1, char* file2);
+int deepcopy(char *fil1, char* file2){
+    return 0;
+}
 
 
 void copyfile(char *name1, char *name2){
@@ -82,7 +84,67 @@ void copyfile(char *name1, char *name2){
     }
     //case2 : if the corresponding destination file exists
     else{
-        
+        if(stat(name2,&mybuf2)<0){
+            if(perror!=ENOENT) {
+                perror("stat");
+                return;
+            }   
+        }
+
+        //case1: if the file status/info of source and dest are different
+        if(mybuf2.st_mode!=mybuf.st_mode){
+            
+            if((mybuf.st_mode & S_IFMT) == S_IFDIR){
+                rmdir(name2); //deleteDirectory(name2) can used if customized
+            }
+            else if((mybuf.st_mode & S_IFMT) == S_IFLNK){
+                printf("explicitly going to be handled");
+            }
+            else{
+                remove(name2)
+            }
+
+            if(deepcopy(name1,name2)<0){
+                printf("error while copying");
+                return;
+            }
+
+            chmod(name2,mybuf.st_mode);
+            copiedEntities++;
+            bytesCopied+=(int)mybuf2.st_size;
+
+
+        }  
+        //case2: if the file size is different 
+        else if(mybuf2.st_size!=mybuf.st_size){
+
+            if(deepcopy(name1,name2)<0){
+                printf("error while copying");
+                return;
+            }
+
+            chmod(name2,mybuf.st_mode);
+            copiedEntities++;
+            bytesCopied+=(int)mybuf2.st_size;
+
+        }
+
+        else if(mybuf.st_mtime>mybuf2.st_mtime){
+
+            if(deepcopy(name1,name2)<0){
+                printf("error while copying");
+                return;
+            }
+
+            chmod(name2,mybuf.st_mode);
+            copiedEntities++;
+            bytesCopied+=(int)mybuf2.st_size;
+
+        }
+
+        }
+
+
     }
     
 
