@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <fcntl.h>
 #include "include.h"
 
 //flags
@@ -21,7 +22,39 @@ extern char origDirName[MAX_PATH_SIZE];
 extern char destDirName[MAX_PATH_SIZE];
 
 
-int deepcopy(char *fil1, char* file2){
+int deepcopy(char *file1, char* file2){
+    int sr, dt; //file descriptor
+    ssize_t readed;
+    char buffer[BUFFSIZE];
+
+    //file descriptors source and destination
+    if(sr=open(file1,O_RDONLY)<0){ // here file is opend with read only permissions
+        return -1;
+    }
+    if(dt=open(file2,O_WRONLY|O_TRUNC|O_CREAT)<0){ //here file2 is opened with write,create if not existed and truncate if exist permission
+        close(sr);
+        return -2;
+    } 
+
+
+
+    //block size for reading and writing at one iteration is BUFFSIZE
+    while( ( readed= read(sr,buffer,BUFFSIZE) ) > 0){ //if read operation is successfull
+            //the read fxn returns the bytes readed.   
+        if(write(dt,buffer,BUFFSIZE)<readed){ //if the written size is less than readed size, the process terminates
+            close(sr); 
+            close(dt);
+            return -3;
+        }
+    }
+
+    close(sr);
+    close(dt);
+
+    if(readed<0){
+        return -4;
+    }
+
     return 0;
 }
 
