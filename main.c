@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <time.h>
 #include "include.h"
 
 //flags
@@ -46,13 +47,13 @@ void traverseDir(char orig[],char destName[]){
     
     //3. check if dest directory(specifically PATH) exist;
     if(stat(destName,&dt)<0){ //if Path(can be a diretory/or a file) dont exists;
-        if(mkdir(destName)==-1){//made the directory
+        if(mkdir(destName,sr.st_mode)==-1){//made the directory
             perror("mkdir");
             return;
         }
-        else {
-            chmod(destName,sr.st_mode); //change modes (permissions) as respect to the source directory
-        }
+        // else {
+        //     chmod(destName,sr.st_mode); //change modes (permissions) as respect to the source directory
+        // }
         copiedEntities++;
 
         if(verbose) printf("created a directory: %s \n", destName);
@@ -65,8 +66,8 @@ void traverseDir(char orig[],char destName[]){
         else{ //if d flag was not given;
             if((S_IFMT & dt.st_mode)!=S_IFDIR){//IF the path not corresponds to a directory
                 remove(destDirName);
-                mkdir(destDirName);
-                chmod(orig,dt.st_mode);
+                mkdir(destDirName,dt.st_mode);
+                //chmod(orig,dt.st_mode);
                 copiedEntities++;
                 if(verbose){
                     printf("replaced : %s with a new directory ", destDirName);
@@ -133,6 +134,8 @@ int main(int argc, char* argv[]){
         return -1;
     }
 
+    clock_t start = clock();//starting time;
+
     //reading flags and storing in 'global variable' because they need to be paased to other function
     for(int i=1;i<(argc-2);i++){            //leaving last 2 inputs that are source and dest
         if(strcmp(argv[i],"-v")==0){        //(v->verbose, which provides addtional info about copying )
@@ -170,6 +173,13 @@ int main(int argc, char* argv[]){
         printf("the current file is regular so copy function is to be initiated \n");
         copyfile(origDirName,destDirName);
     }
+
+    clock_t end=clock(); //ending time;
+    double time_spent=(double)(end-start) / CLOCKS_PER_SEC;
+
+    printf("there are %d files/directories in the heirarchy\n",totalEntities);
+    printf("Number of Entities copied: %d\n",copiedEntities);
+    printf("Copied %d bytes in %f seconds at %f bytes/sec\n",bytesCopied,time_spent,bytesCopied/time_spent);
 
     return 0;
 }
