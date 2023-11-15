@@ -96,14 +96,14 @@ void traverseDir(char orig[],char destName[]){
     {   
         //getting the source directory entry
         char *temp1=malloc(strlen(orig)+strlen(direntp->d_name)+2);
-        strcat(temp1,orig);
-            if(temp1[strlen(orig)-1]!="/") strcat(temp1,"/");
+        strcpy(temp1,orig);
+            if(temp1[strlen(orig)-1]!='/') strcat(temp1,"/");
         strcat(temp1,direntp->d_name);
 
         //framing the exact path for corresponding directory entry
         char *temp2=malloc(strlen(destName)+strlen(direntp->d_name)+2);
-        strcat(temp2,destName);
-            if(temp2[strlen(destName)-1]!="/") strcat(temp2,"/");
+        strcpy(temp2,destName);
+            if(temp2[strlen(destName)-1]!='/') strcat(temp2,"/");
         strcat(temp2,direntp->d_name);  
 
         //check if the entry corresponds to the current parent entry or not
@@ -187,10 +187,10 @@ int main(int argc, char* argv[]){
 
 //here manual conversion to absolute path can be done as well 
 void fixPath(char * oldPath, char which[]){
-	 if (which=='s' && (realpath(oldPath, origDirName) != NULL)) {
+	 if (which=="s" && (realpath(oldPath, origDirName) != NULL)) {
 		printf("origin canonized ");
     } 
-	else if (which=='d' && (realpath(oldPath, destDirName) != NULL)) {
+	else if (which=="d" && (realpath(oldPath, destDirName) != NULL)) {
 		printf("dest canonized ");
 	} 
 	else {
