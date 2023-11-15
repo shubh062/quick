@@ -8,14 +8,14 @@
 #include "include.h"
 
 //flags
-extern checkLinks;
-extern deleteFlag;
-extern verbose;
+extern char checkLinks;
+extern char deleteFlag;
+extern char verbose;
 
 //Copying Information
-extern copiedEntities;
-extern bytesCopied;
-extern totalEntities;
+extern int copiedEntities;
+extern int bytesCopied;
+extern int totalEntities;
 
 #define MAX_PATH_SIZE 256
 extern char origDirName[MAX_PATH_SIZE];
@@ -28,10 +28,10 @@ int deepcopy(char *file1, char* file2){
     char buffer[BUFFSIZE];
 
     //file descriptors source and destination
-    if(sr=open(file1,O_RDONLY)<0){ // here file is opend with read only permissions
+    if(sr=fopen(file1,O_RDONLY)<0){ // here file is opend with read only permissions
         return -1;
     }
-    if(dt=open(file2,O_WRONLY|O_TRUNC|O_CREAT)<0){ //here file2 is opened with write,create if not existed and truncate if exist permission
+    if(dt=fopen(file2,O_WRONLY|O_TRUNC|O_CREAT)<0){ //here file2 is opened with write,create if not existed and truncate if exist permission
         close(sr);
         return -2;
     } 
