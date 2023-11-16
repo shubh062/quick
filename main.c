@@ -1,8 +1,12 @@
 #include <stdio.h>
+#include <sys/types.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <time.h>
 #include "include.h"
@@ -17,7 +21,7 @@ int copiedEntities;
 int bytesCopied;
 int totalEntities;
 
-#define MAX_PATH_SIZE 256
+//#define MAX_PATH_SIZE 256
 char origDirName[MAX_PATH_SIZE];
 char destDirName[MAX_PATH_SIZE];
 
@@ -47,7 +51,11 @@ void traverseDir(char orig[],char destName[]){
     
     //3. check if dest directory(specifically PATH) exist;
     if(stat(destName,&dt)<0){ //if Path(can be a diretory/or a file) dont exists;
-        if(mkdir(destName,sr.st_mode)==-1){//made the directory
+        if(errno!=ENOENT) {
+            perror("stat");
+            return;
+        }
+        if(mkdir(destName,sr.st_mode)<0){//made the directory
             perror("mkdir");
             return;
         }
@@ -92,8 +100,8 @@ void traverseDir(char orig[],char destName[]){
     free(name2);
 
     //5.now we will recursively traverse directry and copy files of each directory entry if it is regular file or if it is a directory then call traversedir again
-    while ((direntp=readdir(dp))!=NULL)
-    {   
+    while ((direntp=readdir(dp))!=NULL){
+        if(direntp->d_ino==0) continue;   
         //getting the source directory entry
         char *temp1=malloc(strlen(orig)+strlen(direntp->d_name)+2);
         strcpy(temp1,orig);
@@ -111,7 +119,7 @@ void traverseDir(char orig[],char destName[]){
 
         if(flag!=0){
             totalEntities++;
-            copyfile(temp1,temp2);
+            copyfile(source,destin);
         }    
 
         free(temp1);
@@ -187,10 +195,10 @@ int main(int argc, char* argv[]){
 
 //here manual conversion to absolute path can be done as well 
 void fixPath(char * oldPath, char which[]){
-	 if (which=="s" && (realpath(oldPath, origDirName) != NULL)) {
+	 if ((strcmp(which,"s")==0) && (realpath(oldPath, origDirName) != NULL)) {
 		printf("origin canonized ");
     } 
-	else if (which=="d" && (realpath(oldPath, destDirName) != NULL)) {
+	else if ((strcmp(which,"d")==0) && (realpath(oldPath, destDirName) != NULL)) {
 		printf("dest canonized ");
 	} 
 	else {
