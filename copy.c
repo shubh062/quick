@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <string.h>
+#include <dirent.h>
 #include <dirent.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include "include.h"
 
@@ -28,10 +32,10 @@ int deepcopy(char *file1, char* file2){
     char buffer[BUFFSIZE];
 
     //file descriptors source and destination
-    if(sr=fopen(file1,O_RDONLY)<0){ // here file is opend with read only permissions
+    if(sr=open(file1,O_RDONLY)<0){ // here file is opend with read only permissions
         return -1;
     }
-    if(dt=fopen(file2,O_WRONLY|O_TRUNC|O_CREAT)<0){ //here file2 is opened with write,create if not existed and truncate if exist permission
+    if(dt=open(file2,O_WRONLY|O_TRUNC|O_CREAT)<0){ //here file2 is opened with write,create if not existed and truncate if exist permission
         close(sr);
         return -2;
     } 
@@ -62,7 +66,7 @@ int deepcopy(char *file1, char* file2){
 void copyfile(char *name1, char *name2){
     struct stat mybuf;
     struct stat mybuf2;
-    char type;
+    char *type; //can use char type also, then to compare and assign;
 
     //step1: get the file type of the source path
     if(lstat(name1,&mybuf)==0){
@@ -70,7 +74,7 @@ void copyfile(char *name1, char *name2){
         case S_IFDIR :
             type="d";
             break;
-        case S_ISLNK:
+        case S_IFLNK:
             type="l";
             break;
         case S_IFREG:
@@ -85,22 +89,27 @@ void copyfile(char *name1, char *name2){
     else return;
 
     if(strcmp(type,"d")==0){
-        traversedir(name1,name2);
+        traverseDir(name1,name2);
+        return;
     }
-    else if(strcmp(type,"l")==0){
+     if(strcmp(type,"l")==0){
         if(checkLinks) printf("call for copy of symbolic function");
         return;
     }//Case: Hardlink to explicitly handled
-
+    //free(type);
+    //type=NULL;
     //if the file is regular 
 
     //case1 if the corresponding dest file dont't exist 
     if(stat(name2,&mybuf2)<0){
-        if(perror!=ENOENT) {
+        if(errno!=ENOENT) {
             perror("stat");
             return;
         }
-       deepcopy(name1,name2);
+       if(deepcopy(name1,name2)<0){
+        perror("error while copying file: ");
+        return;
+       }
        chmod(name2,mybuf.st_mode);
 
         if(stat(name2,&mybuf2)<0){
@@ -117,12 +126,12 @@ void copyfile(char *name1, char *name2){
     }
     //case2 : if the corresponding destination file exists
     else{
-        if(stat(name2,&mybuf2)<0){
-            if(perror!=ENOENT) {
-                perror("stat");
-                return;
-            }   
-        }
+        // if(stat(name2,&mybuf2)<0){
+        //     if(errno!=ENOENT) {
+        //         perror("stat");
+        //         return;
+        //     }   
+        // }
 
         //case1: if the file status/info of source and dest are different
         if(mybuf2.st_mode!=mybuf.st_mode){
@@ -134,7 +143,7 @@ void copyfile(char *name1, char *name2){
                 printf("explicitly going to be handled");
             }
             else{
-                remove(name2)
+                remove(name2);
             }
 
             if(deepcopy(name1,name2)<0){
@@ -144,6 +153,11 @@ void copyfile(char *name1, char *name2){
 
             chmod(name2,mybuf.st_mode);
             copiedEntities++;
+
+            if(stat(name2,&mybuf2)<0){
+                perror("stat");
+                return;
+            }
             bytesCopied+=(int)mybuf2.st_size;
             if(verbose) {
                 printf("copied %s :\n",name2);
@@ -160,6 +174,11 @@ void copyfile(char *name1, char *name2){
 
             chmod(name2,mybuf.st_mode);
             copiedEntities++;
+            
+            if(stat(name2,&mybuf2)<0){
+                perror("stat");
+                return;
+            }            
             bytesCopied+=(int)mybuf2.st_size;
             if(verbose) {
                 printf("copied %s :\n",name2);
@@ -175,6 +194,10 @@ void copyfile(char *name1, char *name2){
             }
 
             chmod(name2,mybuf.st_mode);
+            if(stat(name2,&mybuf2)<0){
+                perror("stat");
+                return;
+            }            
             copiedEntities++;
             bytesCopied+=(int)mybuf2.st_size;
             if(verbose) {
