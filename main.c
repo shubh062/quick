@@ -141,6 +141,14 @@ int main(int argc, char* argv[]){
         printf("Invalid Arguments");
         return -1;
     }
+    verbose=0;
+    checkLinks=0;
+    deleteFlag=0;
+
+    totalEntities=1;
+    copiedEntities=0;
+    bytesCopied=0;
+
 
     clock_t start = clock();//starting time;
 
@@ -178,6 +186,9 @@ int main(int argc, char* argv[]){
         traverseDir( origDirName,destDirName);
     }
     else { //if the source path is any other file
+        totalEntities++;
+        fixPath(argv[argc-2],"s");
+        fixPath(argv[argc-1],"d");
         printf("the current file is regular so copy function is to be initiated \n");
         copyfile(origDirName,destDirName);
     }
